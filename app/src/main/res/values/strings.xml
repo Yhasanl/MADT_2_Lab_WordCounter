@@ -1,0 +1,17 @@
+<resources>
+    <string name="app_name">Word Counter App</string>
+    <string name="hint_enter_text">Enter text or generate a test sentence…</string>
+    <string name="btn_generate_test">Generate Test Sentence</string>
+    <string name="btn_calculate">Calculate Metrics</string>
+    <string name="error_empty_input">Input field is empty! Please enter some text.</string>
+    <string name="label_current_metrics">Current Calculation:</string>
+    <string name="metrics_result_format">Sentences: %1$d | Words: %2$d | Punctuation: %3$d | Numbers: %4$d</string>
+    <string name="label_history">Runtime History (Sentences, Words, Punctuation, Numbers):</string>
+
+    <string-array name="test_sentences">
+        <item>Good morning</item>
+        <item>The war started on September 1. Sad.</item>
+        <item>We have 3 labs, 2 projects, and 1 final exam!</item>
+        <item>Hello, world! Testing 10, 20, 30.</item>
+    </string-array>
+</resources>

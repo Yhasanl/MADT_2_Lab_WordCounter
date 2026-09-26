@@ -5,11 +5,16 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import java.util.ArrayList;
-import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
+
+    // Code Review Fix #2: Keys for preserving runtime state across configuration changes (e.g. screen rotation)
+    private static final String KEY_HISTORY_LIST = "key_history_list";
+    private static final String KEY_CURRENT_METRICS = "key_current_metrics";
+    private static final String KEY_SAMPLE_INDEX = "key_sample_index";
 
     private EditText etInputText;
     private Button btnGenerateTest;
@@ -18,7 +23,7 @@ public class MainActivity extends AppCompatActivity {
     private TextView tvHistory;
 
     private TextMetricsCalculator calculator;
-    private List<String> historyList;
+    private ArrayList<String> historyList;
     private int sampleIndex = 0;
 
     @Override
@@ -33,10 +38,28 @@ public class MainActivity extends AppCompatActivity {
         tvHistory = findViewById(R.id.tvHistory);
 
         calculator = new TextMetricsCalculator();
-        historyList = new ArrayList<>();
+
+        if (savedInstanceState != null) {
+            ArrayList<String> savedHistory = savedInstanceState.getStringArrayList(KEY_HISTORY_LIST);
+            historyList = (savedHistory != null) ? savedHistory : new ArrayList<>();
+            sampleIndex = savedInstanceState.getInt(KEY_SAMPLE_INDEX, 0);
+            String savedMetrics = savedInstanceState.getString(KEY_CURRENT_METRICS, "");
+            tvCurrentMetrics.setText(savedMetrics);
+            updateHistoryView();
+        } else {
+            historyList = new ArrayList<>();
+        }
 
         btnGenerateTest.setOnClickListener(v -> onGenerateTestClicked());
         btnCalculate.setOnClickListener(v -> onCalculateClicked());
+    }
+
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putStringArrayList(KEY_HISTORY_LIST, historyList);
+        outState.putString(KEY_CURRENT_METRICS, tvCurrentMetrics.getText().toString());
+        outState.putInt(KEY_SAMPLE_INDEX, sampleIndex);
     }
 
     private void onGenerateTestClicked() {
@@ -75,7 +98,10 @@ public class MainActivity extends AppCompatActivity {
         // Prepend entry to runtime calculation history
         String historyEntry = calculator.formatHistoryEntry(input, result);
         historyList.add(0, historyEntry);
+        updateHistoryView();
+    }
 
+    private void updateHistoryView() {
         StringBuilder historyBuilder = new StringBuilder();
         for (int i = 0; i < historyList.size(); i++) {
             historyBuilder.append(historyList.get(i));

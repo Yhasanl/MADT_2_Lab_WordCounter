@@ -5,6 +5,13 @@ import java.util.regex.Pattern;
 
 public class TextMetricsCalculator {
 
+    // Code Review Fix #1: Pre-compile regex patterns as static final constants for better performance
+    // and avoid splitting decimal numbers (e.g., 3.14) as separate sentences.
+    private static final Pattern SENTENCE_PATTERN = Pattern.compile("(?<!\\d)[.!?]+(?!\\d)");
+    private static final Pattern WORD_PATTERN = Pattern.compile("\\s+");
+    private static final Pattern PUNCTUATION_PATTERN = Pattern.compile("[.,!?;:'\"()\\-\\[\\]{}]");
+    private static final Pattern NUMBER_PATTERN = Pattern.compile("\\b\\d+(\\.\\d+)?\\b");
+
     public static class MetricsResult {
         private final int sentences;
         private final int words;
@@ -43,7 +50,7 @@ public class TextMetricsCalculator {
         String trimmed = text.trim();
 
         // 1. Calculate number of sentences
-        String[] sentenceParts = trimmed.split("[.!?]+");
+        String[] sentenceParts = SENTENCE_PATTERN.split(trimmed);
         int sentenceCount = 0;
         for (String part : sentenceParts) {
             if (!part.trim().isEmpty()) {
@@ -55,7 +62,7 @@ public class TextMetricsCalculator {
         }
 
         // 2. Calculate number of words
-        String[] wordParts = trimmed.split("\\s+");
+        String[] wordParts = WORD_PATTERN.split(trimmed);
         int wordCount = 0;
         for (String word : wordParts) {
             if (!word.trim().isEmpty()) {
@@ -64,16 +71,14 @@ public class TextMetricsCalculator {
         }
 
         // 3. Calculate number of punctuation marks
-        Pattern punctPattern = Pattern.compile("[.,!?;:'\"()\\-\\[\\]{}]");
-        Matcher punctMatcher = punctPattern.matcher(trimmed);
+        Matcher punctMatcher = PUNCTUATION_PATTERN.matcher(trimmed);
         int punctuationCount = 0;
         while (punctMatcher.find()) {
             punctuationCount++;
         }
 
         // 4. Calculate number of numbers
-        Pattern numberPattern = Pattern.compile("\\b\\d+(\\.\\d+)?\\b");
-        Matcher numberMatcher = numberPattern.matcher(trimmed);
+        Matcher numberMatcher = NUMBER_PATTERN.matcher(trimmed);
         int numberCount = 0;
         while (numberMatcher.find()) {
             numberCount++;
@@ -83,7 +88,8 @@ public class TextMetricsCalculator {
     }
 
     public String formatHistoryEntry(String input, MetricsResult result) {
-        return "\"" + input + "\" => " +
+        String sanitizedInput = input.replaceAll("\\s+", " ").trim();
+        return "\"" + sanitizedInput + "\" => " +
                 result.getSentences() + ", " +
                 result.getWords() + ", " +
                 result.getPunctuationMarks() + ", " +
